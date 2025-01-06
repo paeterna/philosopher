@@ -4,7 +4,7 @@ CFLAGS = -Wall -Wextra -Werror -pthread -g
 
 NAME = philo
 
-SRC = philo.c helpers.c
+SRC = philo.c helpers.c eat_sleep_think.c inits.c
 
 OBJ_DIR = OBJ/
 OBJ = $(SRC:%.c=$(OBJ_DIR)%.o)
