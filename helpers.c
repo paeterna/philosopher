@@ -6,38 +6,38 @@
 /*   By: osadeddi <osadeddi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/01 14:49:02 by osadeddi          #+#    #+#             */
-/*   Updated: 2025/01/04 21:24:51 by osadeddi         ###   ########.fr       */
+/*   Updated: 2025/01/08 18:06:49 by osadeddi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-int	ft_atoi(const char *str)
+int	check_death(t_comb *comb)
 {
-	int	result;
-	int	sign;
-	int	i;
+	struct timeval	now;
 
-	sign = 1;
-	result = 0;
-	i = 0;
-	while (str[i] && (str[i] == ' ' || (str[i] >= 9 && str[i] <= 13)))
-		i++;
-	if (str[i] == '+' || str[i] == '-')
+	gettimeofday(&now, NULL);
+	if ((now.tv_sec * 1000 + now.tv_usec / 1000)
+		- (comb->philo->last_meal.tv_sec * 1000 + comb->philo->last_meal.tv_usec
+			/ 1000) > comb->data->time_to_die)
 	{
-		if (str[i] == '-')
-			sign = -1;
-		i++;
+		pthread_mutex_lock(&comb->data->print_m);
+		if (!check_status(comb))
+		{
+			pthread_mutex_unlock(&comb->data->print_m);
+			return (0);
+		}
+		pthread_mutex_lock(&comb->data->status_m);
+		comb->data->status = 0;
+		print_time(comb->philo, DEAD);
+		pthread_mutex_unlock(&comb->data->status_m);
+		pthread_mutex_unlock(&comb->data->print_m);
+		return (0);
 	}
-	while (str[i] && str[i] >= '0' && str[i] <= '9')
-	{
-		result = result * 10 + str[i] - '0';
-		i++;
-	}
-	return (result * sign);
+	return (1);
 }
 
-void	err_fun(t_comb *comb,t_data *data, int flag)
+void	err_fun(t_comb *comb, t_data *data, int flag)
 {
 	if (flag == 0)
 		printf("Error: No arguments\n");
@@ -49,44 +49,42 @@ void	err_fun(t_comb *comb,t_data *data, int flag)
 		printf("Error: Thread creation failed\n");
 	else if (flag == 4)
 		printf("Error: Thread join failed\n");
+	else if (flag == 5)
+		printf("Error: Mutex failed\n");
 	if (flag > 1)
 	{
-		if (data->philo)
-			free(data->philo);
-		if (data->forks)
-			free(data->forks);
+		destroys(data);
 		if (comb)
 			free(comb);
-		pthread_mutex_destroy(&data->mutex);
+		comb = NULL;
 	}
 	exit(1);
 }
 
-void	destroys(t_data *data)
-{
-	pthread_mutex_destroy(&data->mutex);
-	free(data->philo);
-}
-
-void	print_time(t_philo *philo)
+void	print_time(t_philo *philo, int status)
 {
 	gettimeofday(&philo->end, NULL);
 	printf("%ld	", ((philo->end.tv_sec * 1000000 + philo->end.tv_usec)
-				- (philo->start.tv_sec * 1000000 + philo->start.tv_usec)) / 1000);
+			- (philo->start.tv_sec * 1000000 + philo->start.tv_usec))
+		/ 1000);
+	if (status == 0)
+		printf("Philosopher %d is eating\n", philo->id);
+	else if (status == 1)
+		printf("Philosopher %d is sleeping\n", philo->id);
+	else if (status == 2)
+		printf("Philosopher %d is thinking\n", philo->id);
+	else if (status == 3)
+		printf("Philosopher %d died\n", philo->id);
+	else if (status == 4)
+		printf("Philosopher %d has taken a fork\n", philo->id);
 }
 
-void	my_usleep(uint64_t usec)
+int	check_status(t_comb *comb)
 {
-	struct timeval	start;
-	struct timeval	current;
-	uint64_t		elapsed;
+	int	current_status;
 
-	gettimeofday(&start, NULL);
-	elapsed = 0;
-	while (elapsed < usec)
-	{
-		gettimeofday(&current, NULL);
-		elapsed = (current.tv_sec - start.tv_sec) * 1000000
-			+ (current.tv_usec - start.tv_usec);
-	}
+	pthread_mutex_lock(&comb->data->status_m);
+	current_status = comb->data->status;
+	pthread_mutex_unlock(&comb->data->status_m);
+	return (current_status);
 }

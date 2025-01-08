@@ -6,26 +6,11 @@
 /*   By: osadeddi <osadeddi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/29 18:12:42 by osadeddi          #+#    #+#             */
-/*   Updated: 2025/01/04 21:28:54 by osadeddi         ###   ########.fr       */
+/*   Updated: 2025/01/08 17:54:42 by osadeddi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
-
-// void print_forks(t_data *data)
-// {
-// 	int i;
-
-// 	pthread_mutex_lock(&data->mutex);
-// 	i = 0;
-// 	while (i < data->num_of_philo)
-// 	{
-// 		printf("fork[%d]: %d, ", i, data->forks[i]);
-// 		i++;
-// 	}
-// 	printf("\n");
-// 	pthread_mutex_unlock(&data->mutex);
-// }
 
 void	*run_thread(void *data)
 {
@@ -34,20 +19,13 @@ void	*run_thread(void *data)
 	comb = (t_comb *)data;
 	if (!comb)
 		return (NULL);
-	while (comb->data->status)
+	while (1)
 	{
-		// print_forks(comb->data);
-		take_forks(comb);
-		if (!comb->data->status)
-			break ;
+		if (!take_forks(comb))
+			return (NULL);
 		eat(comb);
-		if (!comb->data->status)
-			break ;
 		return_forks(comb);
-		if (!comb->data->status)
-			break ;
-		sleep_p(comb);
-		comb->data->status--;
+		sleeeep(comb);
 	}
 	return (NULL);
 }

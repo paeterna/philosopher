@@ -6,98 +6,101 @@
 /*   By: osadeddi <osadeddi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/01 21:18:38 by osadeddi          #+#    #+#             */
-/*   Updated: 2025/01/06 15:27:17 by osadeddi         ###   ########.fr       */
+/*   Updated: 2025/01/08 18:25:41 by osadeddi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-void	sleep_p(t_comb *comb)
+void	sleeeep(t_comb *comb)
 {
-	pthread_mutex_lock(&comb->data->mutex);
-	print_time(comb->philo);
-	printf("Philosopher %d is sleeping\n", comb->philo->id);
-	pthread_mutex_unlock(&comb->data->mutex);
-	my_usleep(comb->data->time_to_sleep * 1000);
+	pthread_mutex_lock(&comb->data->print_m);
+	if (!check_status(comb))
+	{
+		pthread_mutex_unlock(&comb->data->print_m);
+		return ;
+	}
+	print_time(comb->philo, SLEEP);
+	pthread_mutex_unlock(&comb->data->print_m);
+	my_usleep(comb->data->time_to_sleep * 1000, comb);
 }
 
 void	eat(t_comb *comb)
 {
-	pthread_mutex_lock(&comb->data->mutex);
-	print_time(comb->philo);
-	printf("Philosopher %d is eating\n", comb->philo->id);
-	pthread_mutex_unlock(&comb->data->mutex);
-	my_usleep(comb->data->time_to_eat * 1000);
 	gettimeofday(&comb->philo->last_meal, NULL);
-	// my_usleep(10000); // delete this
+	pthread_mutex_lock(&comb->data->print_m);
+	if (!check_status(comb))
+	{
+		pthread_mutex_unlock(&comb->data->print_m);
+		return ;
+	}
+	print_time(comb->philo, EAT);
+	pthread_mutex_unlock(&comb->data->print_m);
+	my_usleep(comb->data->time_to_eat * 1000, comb);
 }
 
 int	think(t_comb *comb)
 {
-	pthread_mutex_lock(&comb->data->mutex);
-	print_time(comb->philo);
-	printf("Philosopher %d is thinking\n", comb->philo->id);
-	pthread_mutex_unlock(&comb->data->mutex);
+	pthread_mutex_lock(&comb->data->print_m);
+	if (!check_status(comb))
+	{
+		pthread_mutex_unlock(&comb->data->print_m);
+		return (0);
+	}
+	print_time(comb->philo, THINK);
+	pthread_mutex_unlock(&comb->data->print_m);
 	while (1)
 	{
-		pthread_mutex_lock(&comb->data->mutex);
-		if (!comb->data->status)
-		{
-			pthread_mutex_unlock(&comb->data->mutex);
+		if (!check_status(comb))
 			return (0);
-		}
+		pthread_mutex_lock(&comb->data->forks_m);
 		if (comb->data->forks[comb->philo->id - 1]
 			&& comb->data->forks[comb->philo->id % comb->data->num_of_philo])
 		{
-			pthread_mutex_unlock(&comb->data->mutex);
-			break ;
+			pthread_mutex_unlock(&comb->data->forks_m);
+			return (1);
 		}
-		gettimeofday(&comb->philo->end, NULL);
-		if ((comb->philo->end.tv_sec * 1000000 + comb->philo->end.tv_usec)
-			- (comb->philo->last_meal.tv_sec * 1000000
-				+ comb->philo->last_meal.tv_usec) > comb->data->time_to_die
-			* 1000)
-		{
-			print_time(comb->philo);
-			printf("Philosopher %d died\n", comb->philo->id);
-			comb->data->status = 0;
-			free(comb->data->forks);
-			free(comb->data->philo);
-			free(comb);
-			pthread_mutex_unlock(&comb->data->mutex);
+		pthread_mutex_unlock(&comb->data->forks_m);
+		if (!check_death(comb))
 			return (0);
-		}
-		pthread_mutex_unlock(&comb->data->mutex);
 	}
 	return (1);
 }
 
-void	take_forks(t_comb *comb)
+int	take_forks(t_comb *comb)
 {
-	pthread_mutex_lock(&comb->data->mutex);
-	if (!comb->data->forks[comb->philo->id - 1]
-		|| !comb->data->forks[comb->philo->id % comb->data->num_of_philo])
+	while (1)
 	{
-		pthread_mutex_unlock(&comb->data->mutex);
+		if (!check_status(comb))
+			return (0);
+		pthread_mutex_lock(&comb->data->forks_m);
+		if (comb->data->forks[comb->philo->id - 1]
+			&& comb->data->forks[comb->philo->id % comb->data->num_of_philo])
+		{
+			comb->data->forks[comb->philo->id - 1] = 0;
+			comb->data->forks[comb->philo->id % comb->data->num_of_philo] = 0;
+			pthread_mutex_unlock(&comb->data->forks_m);
+			pthread_mutex_lock(&comb->data->print_m);
+			if (!check_status(comb))
+				return (pthread_mutex_unlock(&comb->data->print_m));
+			print_time(comb->philo, FORK);
+			print_time(comb->philo, FORK);
+			pthread_mutex_unlock(&comb->data->print_m);
+			break ;
+		}
+		pthread_mutex_unlock(&comb->data->forks_m);
 		if (!think(comb))
-			err_fun(comb, comb->data, PHILO_DIED);
+			return (0);
 	}
-	else
-	{
-		comb->data->forks[comb->philo->id - 1] = 0;
-		comb->data->forks[comb->philo->id % comb->data->num_of_philo] = 0;
-		print_time(comb->philo);
-		printf("Philosopher %d has taken a fork\n", comb->philo->id);
-		print_time(comb->philo);
-		printf("Philosopher %d has taken a fork\n", comb->philo->id);
-		pthread_mutex_unlock(&comb->data->mutex);
-	}
+	return (1);
 }
 
 void	return_forks(t_comb *comb)
 {
-	pthread_mutex_lock(&comb->data->mutex);
+	if (!check_status(comb))
+		return ;
+	pthread_mutex_lock(&comb->data->forks_m);
 	comb->data->forks[comb->philo->id - 1] = 1;
 	comb->data->forks[comb->philo->id % comb->data->num_of_philo] = 1;
-	pthread_mutex_unlock(&comb->data->mutex);
+	pthread_mutex_unlock(&comb->data->forks_m);
 }

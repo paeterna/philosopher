@@ -6,7 +6,7 @@
 /*   By: osadeddi <osadeddi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/01 21:12:48 by osadeddi          #+#    #+#             */
-/*   Updated: 2025/01/04 21:26:12 by osadeddi         ###   ########.fr       */
+/*   Updated: 2025/01/08 17:55:03 by osadeddi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 void	create_philo(t_data *data)
 {
 	t_comb	*comb;
-	int	i;
+	int		i;
 
 	comb = malloc(sizeof(t_comb) * data->num_of_philo);
 	if (!comb)
@@ -37,11 +37,24 @@ void	create_philo(t_data *data)
 	free(comb);
 }
 
-void	inits(t_data *data, int argc, char **argv)
+static void	philo_init(t_data *data)
 {
-	int	i;
+	int				i;
+	struct timeval	now;
 
 	i = -1;
+	while (++i < data->num_of_philo)
+	{
+		gettimeofday(&now, NULL);
+		data->forks[i] = 1;
+		data->philo[i].id = i + 1;
+		data->philo[i].start = now;
+		data->philo[i].last_meal = now;
+	}
+}
+
+void	inits(t_data *data, int argc, char **argv)
+{
 	if (argc < 5 || argc > 6)
 		err_fun(NULL, data, NO_ARGS);
 	data->num_of_philo = ft_atoi(argv[1]);
@@ -55,14 +68,9 @@ void	inits(t_data *data, int argc, char **argv)
 	data->forks = malloc(sizeof(int) * data->num_of_philo);
 	if (!data->philo || !data->forks)
 		err_fun(NULL, data, MALLOC_FAILED);
-	gettimeofday(&data->start, NULL);
-	pthread_mutex_init(&data->mutex, NULL);
-	while (++i < data->num_of_philo)
-	{
-		data->forks[i] = 1;
-		data->philo[i].id = i + 1;
-		data->philo[i].start = data->start;
-		data->philo[i].last_meal = data->start;
-	}
+	pthread_mutex_init(&data->print_m, NULL);
+	pthread_mutex_init(&data->status_m, NULL);
+	pthread_mutex_init(&data->forks_m, NULL);
+	philo_init(data);
 	data->status = 1;
 }

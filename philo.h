@@ -6,7 +6,7 @@
 /*   By: osadeddi <osadeddi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/29 18:13:13 by osadeddi          #+#    #+#             */
-/*   Updated: 2025/01/04 21:25:16 by osadeddi         ###   ########.fr       */
+/*   Updated: 2025/01/08 18:25:05 by osadeddi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,8 +28,17 @@ typedef enum e_error
 	MALLOC_FAILED,
 	THREAD_FAILED,
 	JOIN_FAILED,
-	PHILO_DIED
+	MUTEX_FAILED
 }				t_error;
+
+typedef enum e_status
+{
+	EAT,
+	SLEEP,
+	THINK,
+	DEAD,
+	FORK
+}				t_status;
 
 typedef struct s_philo
 {
@@ -48,9 +57,9 @@ typedef struct s_data
 	int				time_to_sleep;
 	int				*forks;
 	int				status;
-	struct timeval	start;
-	struct timeval	end;
-	pthread_mutex_t	mutex;
+	pthread_mutex_t	forks_m;
+	pthread_mutex_t	print_m;
+	pthread_mutex_t	status_m;
 	t_philo			*philo;
 }					t_data;
 
@@ -60,19 +69,20 @@ typedef struct s_comb
 	t_data	*data;
 }				t_comb;
 
-int	ft_atoi(const char *str);
+int		ft_atoi(const char *str);
 void	inits(t_data *data, int argc, char **argv);
 void	create_philo(t_data *data);
 void	*run_thread(void *data);
 void	destroys(t_data *data);
 void	err_fun(t_comb *comb, t_data *data, int flag);
-void	print_time(t_philo *philo);
-void	take_forks(t_comb *comb);
+void	print_time(t_philo *philo, int status);
+int		take_forks(t_comb *comb);
 void	return_forks(t_comb *comb);
-void	sleep_p(t_comb *comb);
+void	sleeeep(t_comb *comb);
 void	eat(t_comb *comb);
 int		think(t_comb *comb);
-void	my_usleep(uint64_t time);
-void print_forks(t_data *data); // remove this function before submitting
+void	my_usleep(uint64_t time, t_comb *comb);
+int		check_status(t_comb *comb);
+int		check_death(t_comb *comb);
 
 #endif
