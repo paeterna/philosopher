@@ -6,7 +6,7 @@
 /*   By: osadeddi <osadeddi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/01 14:49:02 by osadeddi          #+#    #+#             */
-/*   Updated: 2025/01/08 18:06:49 by osadeddi         ###   ########.fr       */
+/*   Updated: 2025/01/08 18:34:17 by osadeddi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ int	check_death(t_comb *comb)
 		}
 		pthread_mutex_lock(&comb->data->status_m);
 		comb->data->status = 0;
-		print_time(comb->philo, DEAD);
+		print_status(comb->philo, DEAD);
 		pthread_mutex_unlock(&comb->data->status_m);
 		pthread_mutex_unlock(&comb->data->print_m);
 		return (0);
@@ -61,7 +61,7 @@ void	err_fun(t_comb *comb, t_data *data, int flag)
 	exit(1);
 }
 
-void	print_time(t_philo *philo, int status)
+void	print_status(t_philo *philo, int status)
 {
 	gettimeofday(&philo->end, NULL);
 	printf("%ld	", ((philo->end.tv_sec * 1000000 + philo->end.tv_usec)

@@ -6,7 +6,7 @@
 /*   By: osadeddi <osadeddi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/01 21:18:38 by osadeddi          #+#    #+#             */
-/*   Updated: 2025/01/08 18:25:41 by osadeddi         ###   ########.fr       */
+/*   Updated: 2025/01/08 18:34:17 by osadeddi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ void	sleeeep(t_comb *comb)
 		pthread_mutex_unlock(&comb->data->print_m);
 		return ;
 	}
-	print_time(comb->philo, SLEEP);
+	print_status(comb->philo, SLEEP);
 	pthread_mutex_unlock(&comb->data->print_m);
 	my_usleep(comb->data->time_to_sleep * 1000, comb);
 }
@@ -34,7 +34,7 @@ void	eat(t_comb *comb)
 		pthread_mutex_unlock(&comb->data->print_m);
 		return ;
 	}
-	print_time(comb->philo, EAT);
+	print_status(comb->philo, EAT);
 	pthread_mutex_unlock(&comb->data->print_m);
 	my_usleep(comb->data->time_to_eat * 1000, comb);
 }
@@ -47,7 +47,7 @@ int	think(t_comb *comb)
 		pthread_mutex_unlock(&comb->data->print_m);
 		return (0);
 	}
-	print_time(comb->philo, THINK);
+	print_status(comb->philo, THINK);
 	pthread_mutex_unlock(&comb->data->print_m);
 	while (1)
 	{
@@ -83,8 +83,8 @@ int	take_forks(t_comb *comb)
 			pthread_mutex_lock(&comb->data->print_m);
 			if (!check_status(comb))
 				return (pthread_mutex_unlock(&comb->data->print_m));
-			print_time(comb->philo, FORK);
-			print_time(comb->philo, FORK);
+			print_status(comb->philo, FORK);
+			print_status(comb->philo, FORK);
 			pthread_mutex_unlock(&comb->data->print_m);
 			break ;
 		}

@@ -6,7 +6,7 @@
 /*   By: osadeddi <osadeddi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/29 18:13:13 by osadeddi          #+#    #+#             */
-/*   Updated: 2025/01/08 18:25:05 by osadeddi         ###   ########.fr       */
+/*   Updated: 2025/01/08 18:34:17 by osadeddi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,7 +75,7 @@ void	create_philo(t_data *data);
 void	*run_thread(void *data);
 void	destroys(t_data *data);
 void	err_fun(t_comb *comb, t_data *data, int flag);
-void	print_time(t_philo *philo, int status);
+void	print_status(t_philo *philo, int status);
 int		take_forks(t_comb *comb);
 void	return_forks(t_comb *comb);
 void	sleeeep(t_comb *comb);
